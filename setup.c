@@ -131,9 +131,34 @@ parse_args( int argc, char** argv )
 		attrs[i] = 0;
 }
 
+double
+to_milliseconds(struct timespec* time) 
+{
+	return (double)time->tv_sec*1000 + ((double)time->tv_nsec/1000000);
+}
+
+void
+diff(struct timespec* res,struct timespec *start,struct timespec *end)
+{
+	if (res == NULL) return;
+	
+	res -> tv_sec = end -> tv_sec - start -> tv_sec;
+	res -> tv_nsec = end -> tv_nsec - start -> tv_nsec;
+	if (res -> tv_nsec < 0) 
+	{
+		res -> tv_nsec = res -> tv_nsec + 1000000000;
+		res -> tv_sec --;
+	}
+}
+
+
 int
 main( int argc, char** argv )
 {
+
+    struct timespec start,d,end;
+	clock_gettime(CLOCK_REALTIME,&start);
+	
 	kpabe_pub_t* pub;
 	kpabe_msk_t* msk;
 
@@ -143,5 +168,10 @@ main( int argc, char** argv )
 	spit_file(pub_file, kpabe_pub_serialize(pub), 1);
 	spit_file(msk_file, kpabe_msk_serialize(msk), 1);
 
+	clock_gettime(CLOCK_REALTIME,&end);
+	diff(&d,&start,&end);
+	
+	printf("%lf", to_milliseconds(&d));
+	
 	return 0;
 }
